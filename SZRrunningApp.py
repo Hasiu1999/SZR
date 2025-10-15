@@ -1,17 +1,23 @@
 import time
 from datetime import datetime
 
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 import csv
 import os
 #settings
-#workmood = ['10','10','10']
-#standard_PIN = 2
-#reserve_PIN = 3
+standard_PIN = 2
+reserve_PIN = 3
 #signalStandard_PIN = 4
 #signalReserve_PIN = 17
-
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(standard_PIN, GPIO.OUT)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(reserve_PIN, GPIO.OUT)
+GPIO.output(standard_PIN, GPIO.LOW)
+time.sleep(0.2)
+GPIO.output(reserve_PIN, GPIO.LOW)
+time.sleep(0.2)
 
 def loggsCSV(arg, zdarzenia = "zdarzenia.csv" ):
     
@@ -79,6 +85,25 @@ def monitoringCSV():
     time.sleep(0.1)
     return workmood
 
+def relayservice(atr):
+    relay_state = GPIO.input(standard_PIN)
+    relay_state1 = GPIO.input(reserve_PIN)
+
+    if atr == 1 and relay_state == GPIO.LOW :
+        GPIO.output(standard_PIN, GPIO.HIGH)
+        time.sleep(0.2)
+    elif atr == 2 and relay_state1 == GPIO.LOW :
+        GPIO.output(reserve_PIN, GPIO.HIGH)
+        time.sleep(0.2)
+    if atr == 1 and relay_state1 == GPIO.HIGH :
+        GPIO.output(standard_PIN, GPIO.LOW)
+        time.sleep(0.2)
+    elif atr == 2 and relay_state1 == GPIO.HIGH:
+        GPIO.output(reserve_PIN, GPIO.LOW)
+        time.sleep(0.2)    
+    else:
+        print("Skątaktuj sie z servisem")
+
 def meinMotor():
         
         workmoodCSV_first = monitoringCSV()
@@ -96,6 +121,7 @@ def meinMotor():
                     print("Załączono przekaźnik lini podstawoej")
                     loggsCSV("Linia Alternatywna")
                     loggsCSV("Załączono przekaźnik lini podstawoej")
+                    relayservice(1)
                 elif workmoodCSV_second == ["1","1","2"]:
                     #Wyłącz przekaźnik podstawy, załącz przekaźnik rezerwy 
                     print("Linia Alternatywna")
